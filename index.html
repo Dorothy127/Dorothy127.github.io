@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>薄肌打卡｜112斤计划</title>
+    <title>薄肌打卡 · 简洁版｜112斤计划</title>
     <style>
         * {
             box-sizing: border-box;
@@ -20,7 +20,6 @@
             max-width: 600px;
             margin: 0 auto;
         }
-        /* 顶部卡片 */
         .hero-card {
             background: linear-gradient(135deg, #4f6e4d 0%, #365236 100%);
             color: white;
@@ -59,7 +58,6 @@
             border-radius: 40px;
             font-weight: 600;
         }
-        /* 卡片样式 */
         .card {
             background: white;
             border-radius: 28px;
@@ -90,7 +88,6 @@
             border-radius: 30px;
             color: #6e6a5e;
         }
-        /* 打卡列表 */
         .habit-list {
             display: flex;
             flex-direction: column;
@@ -251,10 +248,9 @@
 </head>
 <body>
 <div class="container">
-    <!-- 顶部卡片：体重 + 连续打卡成功天数 -->
     <div class="hero-card">
         <div class="hero-title">🌱 薄肌·加油</div>
-        <div class="hero-sub">33岁 · 160cm · 任意5项打卡成功</div>
+        <div class="hero-sub">33岁 · 159cm · 任意5项打卡成功</div>
         <div class="stats-row">
             <span>🎯 目标 112斤</span>
             <span>⚖️ 当前 <strong id="currentWeightSpan">120.5</strong> 斤</span>
@@ -262,7 +258,6 @@
         </div>
     </div>
 
-    <!-- 打卡卡片 可自定义增加/删除 -->
     <div class="card">
         <div class="card-header">
             <h2>✅ 今日打卡</h2>
@@ -270,7 +265,6 @@
         </div>
         <div id="habitListContainer" class="habit-list"></div>
         
-        <!-- 新增习惯栏 -->
         <div class="add-habit-bar">
             <input type="text" id="newHabitInput" class="add-input" placeholder="新习惯名称，例如：冥想5分钟" maxlength="28">
             <button id="addHabitBtn" class="add-btn">+ 添加</button>
@@ -282,12 +276,11 @@
             <button id="resetTodayBtn" class="btn-outline" style="padding:6px 14px;">⟳ 重置今日</button>
         </div>
         <div style="font-size:0.7rem; color:#8d8474; margin-top: 12px; background:#f9f6f0; padding:6px 12px; border-radius: 20px;">
-            ✅ 规则：每日打勾 ≥5项 → 打卡成功<br>
+            ✅ 规则：每日打勾 ≥5项 → 打卡成功（顶部连续天数会增加）<br>
             🗑️ 删除习惯会清空该项历史累计，谨慎操作
         </div>
     </div>
 
-    <!-- 只保留连续打卡成功天数卡片（已移除详细习惯累计统计） -->
     <div class="card">
         <div class="card-header">
             <h2>🏆 打卡成就</h2>
@@ -301,7 +294,6 @@
         </div>
     </div>
 
-    <!-- 体重腰围记录 -->
     <div class="card">
         <div class="card-header">
             <h2>📏 每周身体记录</h2>
@@ -322,8 +314,7 @@
 </div>
 
 <script>
-    // ---------- 核心数据结构 ----------
-    // habits 数组，每个对象包含 id, text, order
+    // ========== 核心数据结构 ==========
     let habits = [
         { id: "habit_0", text: "💧 起床半杯温水", order: 0 },
         { id: "habit_1", text: "🍳 牛奶燕麦+水煮蛋", order: 1 },
@@ -340,21 +331,19 @@
     ];
     let nextIdCounter = 12;
 
-    // 存储累计坚持天数: habitStats { habitId: totalDays }
-    let habitStats = {};
-    // 打卡成功记录 (按日期是否达到5项) successMap: { "2026-04-16": true/false }
-    let successMap = {};
-    // 体重腰围记录
+    let habitStats = {};      // { habitId: totalDays }
+    let successMap = {};      // { "2026-04-16": true/false }
     let weightRecords = [];
 
     let currentDate = new Date().toISOString().slice(0,10);
 
-    // ---------- 辅助函数 ----------
+    // ========== 存储函数 ==========
     function saveHabitsToLocal() {
         const habitsData = habits.map(h => ({ id: h.id, text: h.text, order: h.order }));
         localStorage.setItem("customHabitsList", JSON.stringify(habitsData));
         localStorage.setItem("nextIdCounter", nextIdCounter);
     }
+    
     function loadHabitsFromLocal() {
         const saved = localStorage.getItem("customHabitsList");
         if(saved) {
@@ -365,7 +354,7 @@
                     let maxId = 0;
                     habits.forEach(h => {
                         const num = parseInt(h.id.split('_')[1]);
-                        if(!isNaN(num) && num >= maxId) maxId = num+1;
+                        if(!isNaN(num) && num >= maxId) maxId = num + 1;
                     });
                     nextIdCounter = maxId;
                 }
@@ -373,11 +362,13 @@
         }
         habits.sort((a,b) => (a.order||0) - (b.order||0));
     }
+    
     function saveStats() {
         localStorage.setItem("habitStats_v3", JSON.stringify(habitStats));
         localStorage.setItem("successMap_v3", JSON.stringify(successMap));
         localStorage.setItem("weightRecords_v3", JSON.stringify(weightRecords));
     }
+    
     function loadStats() {
         const s = localStorage.getItem("habitStats_v3");
         if(s) habitStats = JSON.parse(s);
@@ -393,7 +384,6 @@
         else weightRecords = [];
     }
 
-    // 获取某一天的打卡状态
     function getDailyState(dateStr) {
         const key = `daily_v3_${dateStr}`;
         const raw = localStorage.getItem(key);
@@ -402,84 +392,108 @@
         habits.forEach(h => { empty[h.id] = false; });
         return empty;
     }
+    
     function saveDailyState(dateStr, state) {
         const key = `daily_v3_${dateStr}`;
         localStorage.setItem(key, JSON.stringify(state));
     }
 
-    // 重新计算所有习惯总天数（遍历所有历史打卡记录）
+    // ========== 核心计算函数（已修复） ==========
     function recalcAllHabitTotals() {
-        // 重置
         habits.forEach(h => { habitStats[h.id] = 0; });
-        for(let i=0; i<localStorage.length; i++) {
+        for(let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if(key && key.startsWith("daily_v3_")) {
-                const state = JSON.parse(localStorage.getItem(key));
-                habits.forEach(h => {
-                    if(state[h.id] === true) habitStats[h.id] += 1;
-                });
+                try {
+                    const state = JSON.parse(localStorage.getItem(key));
+                    habits.forEach(h => {
+                        if(state[h.id] === true) habitStats[h.id] += 1;
+                    });
+                } catch(e) {}
             }
         }
         saveStats();
     }
 
-    // 重新计算所有日期的打卡成功 (任意5项)
     function recalcAllSuccessDays() {
         const newSuccessMap = {};
-        for(let i=0; i<localStorage.length; i++) {
+        for(let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if(key && key.startsWith("daily_v3_")) {
                 const dateStr = key.replace("daily_v3_", "");
-                const state = JSON.parse(localStorage.getItem(key));
-                let completed = 0;
-                habits.forEach(h => { if(state[h.id] === true) completed++; });
-                newSuccessMap[dateStr] = (completed >= 5);
+                try {
+                    const state = JSON.parse(localStorage.getItem(key));
+                    let completed = 0;
+                    habits.forEach(h => { if(state[h.id] === true) completed++; });
+                    newSuccessMap[dateStr] = (completed >= 5);
+                } catch(e) {
+                    newSuccessMap[dateStr] = false;
+                }
             }
         }
         successMap = newSuccessMap;
         saveStats();
     }
 
-    // 获取连续成功天数（从今天开始往前推）
     function getContinuousSuccessStreak() {
         let streak = 0;
         let checkDate = new Date();
-        for(let i=0;i<500;i++) {
+        for(let i = 0; i < 365; i++) {
             const dKey = checkDate.toISOString().slice(0,10);
-            if(successMap[dKey] === true) streak++;
-            else break;
+            if(successMap[dKey] === true) {
+                streak++;
+            } else {
+                break;
+            }
             checkDate.setDate(checkDate.getDate() - 1);
         }
         return streak;
     }
 
-    // 更新顶部连续天数UI & 今日进度
+    // 核心修复：实时更新 successMap 并刷新界面
     function updateTopStreakAndProgress() {
-        const streak = getContinuousSuccessStreak();
-        document.getElementById("streakTopDisplay").innerHTML = `🔥 成功坚持 ${streak} 天`;
-        document.getElementById("continuousStreakSpan").innerText = `${streak} 天`;
-        // 今日完成情况
         const todayState = getDailyState(currentDate);
         let completed = 0;
         habits.forEach(h => { if(todayState[h.id]) completed++; });
-        const total = habits.length;
-        document.getElementById("todayCompletedCount").innerText = completed;
-        document.getElementById("totalHabitsCount").innerText = total;
         const successToday = (completed >= 5);
+        
+        // 立即同步 successMap 中今天的状态
+        if (successToday) {
+            if (successMap[currentDate] !== true) {
+                successMap[currentDate] = true;
+                saveStats();
+            }
+        } else {
+            if (successMap[currentDate] === true) {
+                successMap[currentDate] = false;
+                saveStats();
+            }
+        }
+        
+        const streak = getContinuousSuccessStreak();
+        document.getElementById("streakTopDisplay").innerHTML = `🔥 成功坚持 ${streak} 天`;
+        document.getElementById("continuousStreakSpan").innerText = `${streak} 天`;
+        document.getElementById("todayCompletedCount").innerText = completed;
+        document.getElementById("totalHabitsCount").innerText = habits.length;
+        
         const badgeSpan = document.getElementById("todaySuccessBadge");
-        if(successToday) badgeSpan.innerHTML = "🎉 今日打卡成功 (≥5项)";
-        else badgeSpan.innerHTML = "⏳ 未达成5项，继续加油";
-        if(successToday) badgeSpan.style.background = "#dde9d6";
-        else badgeSpan.style.background = "#e7e4db";
+        if(successToday) {
+            badgeSpan.innerHTML = "🎉 今日打卡成功 (≥5项)";
+            badgeSpan.style.background = "#dde9d6";
+        } else {
+            badgeSpan.innerHTML = "⏳ 未达成5项，继续加油";
+            badgeSpan.style.background = "#e7e4db";
+        }
     }
 
-    // 渲染打卡列表（右侧显示累计天数 + 可编辑文字 + 删除按钮）
+    // ========== 渲染函数 ==========
     function renderHabitChecklist() {
         const container = document.getElementById("habitListContainer");
         if(!container) return;
         const todayState = getDailyState(currentDate);
         container.innerHTML = "";
         habits.sort((a,b) => (a.order||0) - (b.order||0));
+        
         habits.forEach(habit => {
             const isChecked = todayState[habit.id] || false;
             const totalDays = habitStats[habit.id] || 0;
@@ -497,30 +511,35 @@
             `;
             container.appendChild(div);
         });
-        // 勾选事件
+        
+        // 绑定勾选事件
         document.querySelectorAll(".check-btn").forEach(btn => {
-            btn.addEventListener("click", (e) => {
+            btn.removeEventListener("click", btn._listener);
+            const handler = () => {
                 const hid = btn.getAttribute("data-id");
                 const curState = getDailyState(currentDate);
                 curState[hid] = !curState[hid];
                 saveDailyState(currentDate, curState);
                 recalcAllHabitTotals();
                 recalcAllSuccessDays();
-                renderHabitChecklist();      // 刷新列表
+                renderHabitChecklist();
                 updateTopStreakAndProgress();
                 updateWeightHeader();
-            });
+            };
+            btn.addEventListener("click", handler);
+            btn._listener = handler;
         });
-        // 删除习惯事件
+        
+        // 绑定删除事件
         document.querySelectorAll(".delete-habit").forEach(btn => {
-            btn.addEventListener("click", (e) => {
+            btn.removeEventListener("click", btn._delListener);
+            const delHandler = () => {
                 const hid = btn.getAttribute("data-id");
-                if(confirm(`确定要删除习惯「${habits.find(h=>h.id===hid)?.text}」吗？\n该习惯的所有历史打卡记录和累计天数将永久清除！`)) {
-                    // 移除习惯
+                const habitName = habits.find(h => h.id === hid)?.text;
+                if(confirm(`确定要删除习惯「${habitName}」吗？\n该习惯的所有历史打卡记录和累计天数将永久清除！`)) {
                     const index = habits.findIndex(h => h.id === hid);
                     if(index !== -1) habits.splice(index,1);
-                    // 清除所有daily记录里面对应习惯的字段
-                    for(let i=0;i<localStorage.length;i++) {
+                    for(let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
                         if(key && key.startsWith("daily_v3_")) {
                             const state = JSON.parse(localStorage.getItem(key));
@@ -530,7 +549,6 @@
                             }
                         }
                     }
-                    // 清除 habitStats
                     delete habitStats[hid];
                     saveHabitsToLocal();
                     recalcAllHabitTotals();
@@ -538,11 +556,15 @@
                     renderHabitChecklist();
                     updateTopStreakAndProgress();
                 }
-            });
+            };
+            btn.addEventListener("click", delHandler);
+            btn._delListener = delHandler;
         });
-        // 编辑文字
+        
+        // 绑定编辑事件
         document.querySelectorAll(".habit-text").forEach(input => {
-            input.addEventListener("change", (e) => {
+            input.removeEventListener("change", input._changeListener);
+            const changeHandler = () => {
                 const hid = input.getAttribute("data-id");
                 const newText = input.value.trim();
                 if(newText) {
@@ -550,15 +572,18 @@
                     if(habit) habit.text = newText;
                     saveHabitsToLocal();
                 } else {
-                    const orig = habits.find(h=>h.id===hid)?.text;
+                    const orig = habits.find(h => h.id === hid)?.text;
                     if(orig) input.value = orig;
                 }
-            });
+            };
+            input.addEventListener("change", changeHandler);
+            input._changeListener = changeHandler;
         });
+        
         updateTopStreakAndProgress();
     }
 
-    // 新增习惯
+    // ========== 其他功能函数 ==========
     function addNewHabit() {
         const inputEl = document.getElementById("newHabitInput");
         let newName = inputEl.value.trim();
@@ -572,7 +597,6 @@
         const newHabit = { id: newId, text: newName, order: maxOrder };
         habits.push(newHabit);
         habitStats[newId] = 0;
-        // 确保当天状态中包含新习惯 (默认为false)
         const todayState = getDailyState(currentDate);
         todayState[newId] = false;
         saveDailyState(currentDate, todayState);
@@ -585,7 +609,6 @@
         inputEl.value = "";
     }
 
-    // 重置今日所有勾选
     function resetToday() {
         const emptyState = {};
         habits.forEach(h => { emptyState[h.id] = false; });
@@ -597,7 +620,6 @@
         alert("今日打卡已重置");
     }
 
-    // 体重记录相关
     function renderWeightHistory() {
         const divHistory = document.getElementById("weightHistoryList");
         if(!divHistory) return;
@@ -617,6 +639,7 @@
         });
         updateWeightHeader();
     }
+    
     function updateWeightHeader() {
         if(weightRecords.length > 0 && weightRecords[weightRecords.length-1].weight) {
             document.getElementById("currentWeightSpan").innerText = weightRecords[weightRecords.length-1].weight;
@@ -624,6 +647,7 @@
             document.getElementById("currentWeightSpan").innerText = "120.5";
         }
     }
+    
     function saveWeeklyRecord() {
         const weightVal = document.getElementById("weightInput").value;
         const waistVal = document.getElementById("waistInput").value;
@@ -641,6 +665,7 @@
         document.getElementById("weightInput").value = "";
         document.getElementById("waistInput").value = "";
     }
+    
     function clearWeightHistory() {
         if(confirm("清空所有体重/腰围记录？")) {
             weightRecords = [];
@@ -648,17 +673,18 @@
             renderWeightHistory();
         }
     }
+    
     function fullReset() {
         if(confirm("⚠️ 彻底清空所有数据(打卡记录、习惯累计、体重记录)不可恢复。确定吗？")) {
             const keysToRemove = [];
-            for(let i=0; i<localStorage.length; i++) {
+            for(let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if(key && (key.startsWith("daily_v3_") || key === "habitStats_v3" || key === "successMap_v3" || key === "weightRecords_v3" || key === "customHabitsList")) {
                     keysToRemove.push(key);
                 }
             }
             keysToRemove.forEach(k => localStorage.removeItem(k));
-            // 重置默认习惯
+            
             habits = [
                 { id: "habit_0", text: "💧 起床半杯温水", order: 0 },
                 { id: "habit_1", text: "🍳 牛奶燕麦+水煮蛋", order: 1 },
@@ -691,10 +717,14 @@
 
     function escapeHtml(str) { 
         if(!str) return '';
-        return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); 
+        return str.replace(/[&<>]/g, function(m){ 
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
     }
 
-    // 事件绑定
     function bindEvents() {
         document.getElementById("addHabitBtn")?.addEventListener("click", addNewHabit);
         document.getElementById("resetTodayBtn")?.addEventListener("click", resetToday);
@@ -713,6 +743,7 @@
         updateTopStreakAndProgress();
         bindEvents();
     }
+    
     init();
 </script>
 </body>

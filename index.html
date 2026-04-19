@@ -244,17 +244,22 @@
             justify-content: space-between;
             align-items: center;
         }
+        .total-days-large {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #4f6e4d;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="hero-card">
         <div class="hero-title">🌱 薄肌·加油</div>
-        <div class="hero-sub">33岁 · 160cm ·先完成 再完美 </div>
+        <div class="hero-sub">33岁 · 160cm · 先完成 再完美 </div>
         <div class="stats-row">
             <span>🎯 目标 112斤</span>
             <span>⚖️ 当前 <strong id="currentWeightSpan">120.5</strong> 斤</span>
-            <span class="streak-badge" id="streakTopDisplay">🔥 成功坚持 0 天</span>
+            <span class="streak-badge" id="totalDaysTopDisplay">🏆 累计坚持 0 天</span>
         </div>
     </div>
 
@@ -276,18 +281,20 @@
             <button id="resetTodayBtn" class="btn-outline" style="padding:6px 14px;">⟳ 重置今日</button>
         </div>
         <div style="font-size:0.7rem; color:#8d8474; margin-top: 12px; background:#f9f6f0; padding:6px 12px; border-radius: 20px;">
-            ✅ 规则：每日打勾 ≥5项 → 打卡成功（顶部天数会增加）<br>
-            🗑️ 删除习惯会清空该项历史累计，谨慎操作！！！
+            ✅ 规则：每日打勾 ≥5项 → 打卡成功（累计天数会增加）<br>
+            🗑️ 删除习惯会清空该项历史累计，谨慎操作
         </div>
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h2>🏆 打卡成就</h2>
+            <h2>🏆 累计打卡成就</h2>
         </div>
-        <div class="streak-bottom-card">
-            <span>📅 连续成功天数 (≥5项/天)</span>
-            <span style="font-weight: 800; font-size: 1.4rem; color:#4f6e4d;" id="continuousStreakSpan">0 天</span>
+        <div class="streak-bottom-card" style="justify-content: center; gap: 20px;">
+            <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: #6e6a5e;">累计成功天数</div>
+                <div class="total-days-large" id="totalDaysSpan">0</div>
+            </div>
         </div>
         <div style="margin-top: 16px;">
             <button id="clearAllDataBtn" class="btn-small-clear" style="color:#a2775c;">🗑️ 清空所有数据(重置全部)</button>
@@ -310,7 +317,7 @@
             <div style="padding: 14px; color:#aaa18f;">暂无数据</div>
         </div>
     </div>
-    <div class="footer-note">✨ 加油啊！！！是崭新的每一天</div>
+    <div class="footer-note">✨ 从小事情的掌控感找回人生的方向盘</div>
 </div>
 
 <script>
@@ -398,7 +405,7 @@
         localStorage.setItem(key, JSON.stringify(state));
     }
 
-    // ========== 核心计算函数（已修复） ==========
+    // ========== 核心计算函数 ==========
     function recalcAllHabitTotals() {
         habits.forEach(h => { habitStats[h.id] = 0; });
         for(let i = 0; i < localStorage.length; i++) {
@@ -435,23 +442,18 @@
         saveStats();
     }
 
-    function getContinuousSuccessStreak() {
-        let streak = 0;
-        let checkDate = new Date();
-        for(let i = 0; i < 365; i++) {
-            const dKey = checkDate.toISOString().slice(0,10);
-            if(successMap[dKey] === true) {
-                streak++;
-            } else {
-                break;
+    // 获取总成功天数
+    function getTotalSuccessDays() {
+        let total = 0;
+        for (let date in successMap) {
+            if (successMap[date] === true) {
+                total++;
             }
-            checkDate.setDate(checkDate.getDate() - 1);
         }
-        return streak;
+        return total;
     }
 
-    // 核心修复：实时更新 successMap 并刷新界面
-    function updateTopStreakAndProgress() {
+    function updateUI() {
         const todayState = getDailyState(currentDate);
         let completed = 0;
         habits.forEach(h => { if(todayState[h.id]) completed++; });
@@ -470,9 +472,13 @@
             }
         }
         
-        const streak = getContinuousSuccessStreak();
-        document.getElementById("streakTopDisplay").innerHTML = `🔥 成功坚持 ${streak} 天`;
-        document.getElementById("continuousStreakSpan").innerText = `${streak} 天`;
+        const totalDays = getTotalSuccessDays();
+        
+        // 更新顶部显示
+        document.getElementById("totalDaysTopDisplay").innerHTML = `🏆 累计成功 ${totalDays} 天`;
+        document.getElementById("totalDaysSpan").innerHTML = totalDays;
+        
+        // 更新今日进度
         document.getElementById("todayCompletedCount").innerText = completed;
         document.getElementById("totalHabitsCount").innerText = habits.length;
         
@@ -523,7 +529,7 @@
                 recalcAllHabitTotals();
                 recalcAllSuccessDays();
                 renderHabitChecklist();
-                updateTopStreakAndProgress();
+                updateUI();
                 updateWeightHeader();
             };
             btn.addEventListener("click", handler);
@@ -554,7 +560,7 @@
                     recalcAllHabitTotals();
                     recalcAllSuccessDays();
                     renderHabitChecklist();
-                    updateTopStreakAndProgress();
+                    updateUI();
                 }
             };
             btn.addEventListener("click", delHandler);
@@ -580,7 +586,7 @@
             input._changeListener = changeHandler;
         });
         
-        updateTopStreakAndProgress();
+        updateUI();
     }
 
     // ========== 其他功能函数 ==========
@@ -605,7 +611,7 @@
         recalcAllHabitTotals();
         recalcAllSuccessDays();
         renderHabitChecklist();
-        updateTopStreakAndProgress();
+        updateUI();
         inputEl.value = "";
     }
 
@@ -616,7 +622,7 @@
         recalcAllHabitTotals();
         recalcAllSuccessDays();
         renderHabitChecklist();
-        updateTopStreakAndProgress();
+        updateUI();
         alert("今日打卡已重置");
     }
 
@@ -711,7 +717,7 @@
             saveStats();
             renderHabitChecklist();
             renderWeightHistory();
-            updateTopStreakAndProgress();
+            updateUI();
         }
     }
 
@@ -740,7 +746,7 @@
         recalcAllSuccessDays();
         renderHabitChecklist();
         renderWeightHistory();
-        updateTopStreakAndProgress();
+        updateUI();
         bindEvents();
     }
     
